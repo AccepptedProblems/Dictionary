@@ -2,6 +2,7 @@ package sample;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
@@ -99,12 +100,18 @@ public class Controller implements Initializable {
 
             ButtonType addButtonType = new ButtonType("add", ButtonBar.ButtonData.OK_DONE);
             dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+            Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
+            addButton.setDisable(true);
 
             GridPane gridPane = new GridPane();
             TextField targetTextField = new TextField();
             targetTextField.setPromptText("target");
             TextField explainTextField = new TextField();
             explainTextField.setPromptText("explain");
+
+            targetTextField.textProperty().addListener((observableValue, s, t1) -> {
+                addButton.setDisable(t1.trim().isEmpty());
+            });
 
             gridPane.add(new Label("Target"), 0, 0);
             gridPane.add(targetTextField, 0, 1);
@@ -121,10 +128,14 @@ public class Controller implements Initializable {
             });
             Optional<Pair<String, String>> result = dialog.showAndWait();
             result.ifPresent( word -> {
-                dictionary.put(word.getKey(), word.getValue());
-                //searchListView.getItems().clear();
-                searchListView.getItems().add(word.getKey());
+                if (dictionary.containsKey(word.getKey())) {
+                    return;
+                } else {
+                    dictionary.put(word.getKey(), word.getValue());
+                    searchListView.getItems().add(word.getKey());
+                }
             });
+
         });
 
 
