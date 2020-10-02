@@ -1,5 +1,6 @@
 package sample;
 
+import com.sun.speech.freetts.VoiceManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -9,7 +10,6 @@ import javafx.util.Pair;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Controller implements Initializable {
 
@@ -34,7 +34,8 @@ public class Controller implements Initializable {
     @FXML
     public TextArea meaningTextArea;
 
-    Map<String, String> dictionary =  new HashMap<String, String>();
+    Map<String, String> dictionary = new HashMap<String, String>();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -50,7 +51,7 @@ public class Controller implements Initializable {
                 String wordMeaning = dictionary.get(searchedWord);
                 meaningTextArea.setText(wordMeaning);
                 Vector<String> result = new Vector<String>();
-                for (String i:dictionary.keySet()){
+                for (String i : dictionary.keySet()) {
                     if (i.startsWith(searchedWord)) {
                         result.add(i);
                     }
@@ -64,10 +65,11 @@ public class Controller implements Initializable {
         });
 
         deleteButton.setOnAction(event -> {
+
             String deleteWord = searchTextField.getText();
             if (deleteWord.equals("") != true && deleteWord != null) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Alert");
+                alert.setTitle("Delete Word");
                 alert.setContentText("Do you want to delete word \"" + deleteWord + "\" ?");
                 //alert.show();
                 Optional<ButtonType> option = alert.showAndWait();
@@ -83,7 +85,7 @@ public class Controller implements Initializable {
         });
         searchListView.setOnMouseClicked(event -> {
             String searchedWord = (String) searchListView.getSelectionModel().getSelectedItem();
-            if (searchedWord != null && searchedWord.equals("") == false) {
+            if (searchedWord != null && !searchedWord.equals("")) {
                 String wordMeaning = dictionary.get(searchedWord);
                 meaningTextArea.setText(wordMeaning);
                 searchTextField.setText(searchedWord);
@@ -115,28 +117,80 @@ public class Controller implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-                    return new Pair<String, String> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<String, String>(targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
             Optional<Pair<String, String>> result = dialog.showAndWait();
-            result.ifPresent( word -> {
+            result.ifPresent(word -> {
                 dictionary.put(word.getKey(), word.getValue());
                 //searchListView.getItems().clear();
                 searchListView.getItems().add(word.getKey());
             });
         });
 
+        changeButton.setOnAction(event -> {
+            String addTarget;
+            String addExplain;
+            Dialog<Pair<String, String>> dialog = new Dialog<>();
+            dialog.setTitle("change Word");
 
+            ButtonType changeButtonType = new ButtonType("change", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(changeButtonType, ButtonType.CANCEL);
+
+            GridPane gridPane = new GridPane();
+            TextField targetTextField = new TextField();
+            TextField explainTextField = new TextField();
+
+            gridPane.add(new Label("Target"), 0, 0);
+            gridPane.add(targetTextField, 0, 1);
+            gridPane.add(new Label("New explanation"), 1, 0);
+            gridPane.add(explainTextField, 1, 1);
+
+
+            dialog.getDialogPane().setContent(gridPane);
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == changeButtonType) {
+                    return new Pair<String, String>(targetTextField.getText(), explainTextField.getText());
+                }
+                return null;
+            });
+            Optional<Pair<String, String>> result = dialog.showAndWait();
+            result.ifPresent(word -> {
+                dictionary.remove(targetTextField.getText());
+                searchTextField.clear();
+                searchListView.getItems().clear();
+                meaningTextArea.clear();
+                searchListView.getItems().addAll(dictionary.keySet());
+                dictionary.put(word.getKey(), word.getValue());
+                searchListView.getItems().add(word.getKey());
+            });
+        });
+
+        spellButton.setOnMouseClicked(event -> {
+            String searchedWord = searchTextField.getText();
+            speech(searchedWord);
+        });
     }
 
     public void initializeWordList() throws IOException {
         DictionaryManagement dictionaryManagement = new DictionaryManagement();
-        Vector<Word> words = dictionaryManagement.insertFromFile();
+        Vector<Word> words = dictionaryManagement.insertFromFile("dictionaries.txt");
         for (int i = 0; i < words.size(); i++) {
             dictionary.put(words.get(i).getWord_target(), words.get(i).getWord_explain());
         }
         searchListView.getItems().addAll(dictionary.keySet());
     }
 
+
+    private void speech(String searchedWord) {
+        System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
+        VoiceManager voiceManager = VoiceManager.getInstance();
+        com.sun.speech.freetts.Voice syntheticVoice = voiceManager.getVoice("kevin16");
+        syntheticVoice.allocate();
+        syntheticVoice.speak(searchedWord);
+        syntheticVoice.deallocate();
+
+
+    }
 }

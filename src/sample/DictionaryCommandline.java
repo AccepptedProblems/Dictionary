@@ -17,7 +17,7 @@ public class DictionaryCommandline extends DictionaryManagement{
     }
 
     public void dictionaryAdvanced() throws IOException {
-        insertFromFile();
+        insertFromFile("dictionaries.txt");
         showAllWords();
         dictionaryLookup();
     }

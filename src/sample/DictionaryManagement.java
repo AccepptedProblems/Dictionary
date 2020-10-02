@@ -1,7 +1,8 @@
 package sample;
 
+import com.sun.speech.freetts.VoiceManager;
+
 import java.io.*;
-import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -27,8 +28,8 @@ public class DictionaryManagement extends Dictionary {
         scanner.close();
     }
 
-    public Vector<Word> insertFromFile() throws IOException {
-        File myObj = new File("C:\\Users\\Admin\\Documents\\Dictionary_OOP\\src\\sample\\Dictionaries.txt");
+    public Vector<Word> insertFromFile(String s) throws IOException {
+        File myObj = new File("Dictionaries.txt");
         Scanner reader = new Scanner(myObj);
         while (reader.hasNextLine()) {
             String target;
@@ -89,7 +90,7 @@ public class DictionaryManagement extends Dictionary {
     }
 
     public void dictionaryExportToFile() throws IOException {
-        File file = new File("C:\\Users\\Admin\\Demo1\\src\\sample\\dictionaries.txt");
+        File file = new File("dictionaries.txt");
         OutputStream outputStream = new FileOutputStream(file);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
         for (int i = 0; i < words.size(); i++) {
@@ -97,4 +98,9 @@ public class DictionaryManagement extends Dictionary {
         }
         outputStreamWriter.flush();
     }
+
+
+
+    
+
 }
