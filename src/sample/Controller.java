@@ -29,15 +29,19 @@ public class Controller implements Initializable {
     @FXML
     public Button searchButton;
     @FXML
+    public Label targetLabel;
+    @FXML
     public TextField searchTextField;
     @FXML
     public ListView searchListView;
     @FXML
     public TextArea meaningTextArea;
 
-    Map<String, String> dictionary =  new HashMap<String, String>();
+    DictionaryManagement dictionaryManager = new DictionaryManagement();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        meaningTextArea.setEditable(false);
+        targetLabel.setText("");
 
         try {
             this.initializeWordList();
@@ -45,55 +49,75 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
 
+        searchTextField.setOnAction(event -> {
+            if (searchTextField.getText().equals("")) {
+                targetLabel.setText("");
+                meaningTextArea.clear();
+                searchListView.getItems().clear();
+                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+            }
+        });
+
         searchButton.setOnMouseClicked(event -> {
             String searchedWord = searchTextField.getText();
-            if (searchedWord != null && searchedWord.equals("") == false) {
-                String wordMeaning = dictionary.get(searchedWord);
-                meaningTextArea.setText(wordMeaning);
-                Vector<String> result = new Vector<String>();
-                for (String i:dictionary.keySet()){
-                    if (i.startsWith(searchedWord)) {
-                        result.add(i);
-                    }
-                }
-                searchListView.getItems().clear();
-                searchListView.getItems().addAll(result);
+            Vector<String> result = dictionaryManager.wordStartWith(searchedWord);
+
+            if (!searchedWord.equals("") && result.size() > 0) {
+
+                //First word in result
+                Word firstSearchedWord = new Word(searchedWord, "");
+                int wordIndex = dictionaryManager.indexOfWord(firstSearchedWord);
+
+                //get meaning
+                firstSearchedWord = dictionaryManager.words.get(wordIndex);
+
+                targetLabel.setText(firstSearchedWord.getWord_target());
+                meaningTextArea.setText(firstSearchedWord.getWord_explain());
+
             } else {
-                searchListView.getItems().clear();
-                searchListView.getItems().addAll(dictionary.keySet());
+                meaningTextArea.clear();
             }
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(result);
+
+
         });
 
         deleteButton.setOnAction(event -> {
-            String deleteWord = searchTextField.getText();
-            if (deleteWord.equals("") != true && deleteWord != null) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            String deleteTargetWord = targetLabel.getText();
+
+            if (deleteTargetWord.equals("")) return;
+
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Alert");
-                alert.setContentText("Do you want to delete word \"" + deleteWord + "\" ?");
-                //alert.show();
+                alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
+                alert.show();
                 Optional<ButtonType> option = alert.showAndWait();
                 if (option.get() == ButtonType.OK) {
+                    Word deleteWord = new Word(deleteTargetWord, "");
+                    dictionaryManager.deleteWordFromDictionary(deleteWord);
 
-                    dictionary.remove(deleteWord);
-                    searchTextField.clear();
-                    searchListView.getItems().clear();
                     meaningTextArea.clear();
-                    searchListView.getItems().addAll(dictionary.keySet());
+                    searchListView.getItems().clear();
+                    searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
                 }
-            }
         });
+
         searchListView.setOnMouseClicked(event -> {
-            String searchedWord = (String) searchListView.getSelectionModel().getSelectedItem();
-            if (searchedWord != null && searchedWord.equals("") == false) {
-                String wordMeaning = dictionary.get(searchedWord);
-                meaningTextArea.setText(wordMeaning);
-                searchTextField.setText(searchedWord);
-            }
+            String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
+            Word searchedWord = new Word(searchStr, "");
+
+            int wordIndex = dictionaryManager.indexOfWord(searchedWord);
+
+            String wordMeaning = dictionaryManager.words.get(wordIndex).getWord_explain();
+
+            meaningTextArea.setText(wordMeaning);
+            targetLabel.setText(searchStr);
+
         });
 
         addButton.setOnAction(event -> {
-            String addTarget;
-            String addExplain;
+
             Dialog<Pair<String, String>> dialog = new Dialog<>();
             dialog.setTitle("Add Word");
             dialog.setHeaderText("Add word in Dictionary");
@@ -122,32 +146,70 @@ public class Controller implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-                    return new Pair<String, String> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<> (targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
             Optional<Pair<String, String>> result = dialog.showAndWait();
             result.ifPresent( word -> {
-                if (dictionary.containsKey(word.getKey())) {
-                    return;
-                } else {
-                    dictionary.put(word.getKey(), word.getValue());
-                    searchListView.getItems().add(word.getKey());
-                }
+                dictionaryManager.addWordToDictionary(word.getKey(), word.getValue());
+                searchListView.getItems().clear();
+                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
             });
 
         });
 
+        changeButton.setOnAction(event -> {
+            String choosenWord = targetLabel.getText();
+            Dialog<Pair<String, String>> dialog = new Dialog<>();
+            dialog.setTitle("Change Word");
+            dialog.setHeaderText("Change word meaning");
+
+            ButtonType changeButtonType = new ButtonType("Change", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(changeButtonType, ButtonType.CANCEL);
+            Node changeButton = dialog.getDialogPane().lookupButton(changeButtonType);
+
+            GridPane gridPane = new GridPane();
+
+            TextField targetTextField = new TextField();
+            targetTextField.setEditable(false);
+            targetTextField.setText(choosenWord);
+
+            TextField explainTextField = new TextField();
+            explainTextField.setPromptText("explain");
+
+            targetTextField.textProperty().addListener((observableValue, s, t1) -> {
+                changeButton.setDisable(t1.trim().isEmpty());
+            });
+
+            gridPane.add(new Label("Target"), 0, 0);
+            gridPane.add(targetTextField, 0, 1);
+            gridPane.add(new Label("Explain"), 1, 0);
+            gridPane.add(explainTextField, 1, 1);
+
+
+            dialog.getDialogPane().setContent(gridPane);
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == changeButtonType) {
+                    return new Pair<String, String> (targetTextField.getText(), explainTextField.getText());
+                }
+                return null;
+            });
+
+            Optional<Pair<String, String>> result = dialog.showAndWait();
+            result.ifPresent( word -> {
+                Word newWord = new Word(word.getKey(), word.getValue());
+                dictionaryManager.changeExplain(newWord);
+                meaningTextArea.setText(word.getValue());
+            });
+
+        });
 
     }
 
     public void initializeWordList() throws IOException {
-        DictionaryManagement dictionaryManagement = new DictionaryManagement();
-        Vector<Word> words = dictionaryManagement.insertFromFile();
-        for (int i = 0; i < words.size(); i++) {
-            dictionary.put(words.get(i).getWord_target(), words.get(i).getWord_explain());
-        }
-        searchListView.getItems().addAll(dictionary.keySet());
+        dictionaryManager.insertFromFile();
+        searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
     }
 
 }
