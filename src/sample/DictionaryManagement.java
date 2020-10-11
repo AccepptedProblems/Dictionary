@@ -6,8 +6,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.Scanner;
+import java.util.Vector;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -29,6 +29,7 @@ public class DictionaryManagement extends Dictionary {
     }
 
     public void insertFromFile() throws IOException {
+
         File readFile = new File("src\\models\\E_V.txt");
         Scanner reader = new Scanner(readFile);
         int count = 0;
@@ -43,20 +44,6 @@ public class DictionaryManagement extends Dictionary {
 
     public void loadFromHistory() throws IOException {
 
-        File myObj = new File("src\\sample\\Dictionaries.txt");
-        Scanner reader = new Scanner(myObj);
-
-        while (reader.hasNextLine()) {
-            String target;
-            String explain;
-
-            target = reader.next();
-            explain = reader.nextLine();
-
-            Word temp = new Word(target, explain);
-            histories.add(temp);
-        }
-        reader.close();
     }
 
     public Vector <String> wordStartWith(String word) {
@@ -107,6 +94,7 @@ public class DictionaryManagement extends Dictionary {
 
     public void addToDictionaryFile(Word word) throws IOException {
         File file = new File("sample\\Dictionaries.txt");
+
         OutputStream outputStream = new FileOutputStream(file);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
 
@@ -114,4 +102,5 @@ public class DictionaryManagement extends Dictionary {
 
         outputStreamWriter.flush();
     }
+
 }

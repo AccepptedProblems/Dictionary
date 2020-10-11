@@ -1,5 +1,6 @@
 package sample;
 
+import com.sun.speech.freetts.VoiceManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -10,7 +11,6 @@ import javafx.util.Pair;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MainController implements Initializable {
 
@@ -38,6 +38,7 @@ public class MainController implements Initializable {
     public TextArea meaningTextArea;
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         meaningTextArea.setEditable(false);
@@ -87,13 +88,13 @@ public class MainController implements Initializable {
 
         deleteButton.setOnAction(event -> {
             String deleteTargetWord = targetLabel.getText();
-
             if (deleteTargetWord.equals("")) return;
 
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Alert");
                 alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
                 alert.show();
+
                 Optional<ButtonType> option = alert.showAndWait();
                 if (option.get() == ButtonType.OK) {
                     Word deleteWord = new Word(deleteTargetWord, "");
@@ -211,6 +212,10 @@ public class MainController implements Initializable {
             //TODO: -Add some function here
         });
 
+        spellButton.setOnMouseClicked(event -> {
+            String searchedWord = searchTextField.getText();
+            speech(searchedWord);
+        });
     }
 
     public void initializeWordList() throws IOException {
@@ -218,4 +223,15 @@ public class MainController implements Initializable {
         searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
     }
 
+
+    private void speech(String searchedWord) {
+        System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
+        VoiceManager voiceManager = VoiceManager.getInstance();
+        com.sun.speech.freetts.Voice syntheticVoice = voiceManager.getVoice("kevin16");
+        syntheticVoice.allocate();
+        syntheticVoice.speak(searchedWord);
+        syntheticVoice.deallocate();
+
+
+    }
 }
