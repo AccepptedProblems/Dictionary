@@ -1,12 +1,47 @@
 package sample;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+
 public class DictionaryManagement extends Dictionary {
 
+    public void parseHTML(String HtmlString) {
+        Document html = Jsoup.parse(HtmlString);
+        String wordTarget = html.body().getElementsByTag("i").text();
+
+        String wordMeaning = "";
+        Elements words = html.body().getElementsByTag("ul");
+        for (Element word: words) {
+            wordMeaning += word.text() + "\n";
+        }
+        addWordToDictionary(wordTarget, wordMeaning);
+    }
+
     public void insertFromFile() throws IOException {
+        File readFile = new File("src\\models\\E_V.txt");
+        Scanner reader = new Scanner(readFile);
+        int count = 0;
+        while (reader.hasNextLine() && count < 10) {
+            String wordLine = reader.nextLine();
+            parseHTML(wordLine);
+            count += 1;
+        }
+        reader.close();
+
+    }
+
+    public void loadFromHistory() throws IOException {
 
         File myObj = new File("src\\sample\\Dictionaries.txt");
         Scanner reader = new Scanner(myObj);
@@ -19,7 +54,7 @@ public class DictionaryManagement extends Dictionary {
             explain = reader.nextLine();
 
             Word temp = new Word(target, explain);
-            words.add(temp);
+            histories.add(temp);
         }
         reader.close();
     }
@@ -43,7 +78,7 @@ public class DictionaryManagement extends Dictionary {
         int wordIndex = indexOfWord(newWord);
 
         if (wordIndex != -1) {
-            System.out.println("bug o day nay");
+            //System.out.println("bug o day nay");
             //TODO: Add an alert that word has appeared
             return;
         }
@@ -57,7 +92,7 @@ public class DictionaryManagement extends Dictionary {
         }
     }
 
-    /** Thay đổi nghĩa bằng cách nhập từ tiếng anh và nghĩa mới */
+
     public void changeExplain(Word newWord) {
         int wordIndex = indexOfWord(newWord);
         words.set(wordIndex, newWord);
@@ -70,13 +105,13 @@ public class DictionaryManagement extends Dictionary {
         words.remove(word);
     }
 
-    public void dictionaryExportToFile() throws IOException {
-        File file = new File("sample\\dictionaries.txt");
+    public void addToDictionaryFile(Word word) throws IOException {
+        File file = new File("sample\\Dictionaries.txt");
         OutputStream outputStream = new FileOutputStream(file);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
-        for (int i = 0; i < words.size(); i++) {
-            outputStreamWriter.write(words.get(i).getWord_target()+ " " + words.get(i).getWord_explain() + "\n");
-        }
+
+        outputStreamWriter.write(word.getWord_target()+ " " + word.getWord_explain() + "\n");
+
         outputStreamWriter.flush();
     }
 }

@@ -6,6 +6,7 @@ import java.util.Vector;
 
 public class Dictionary {
     public Vector<Word> words;
+    public Vector<Word> histories;
 
     public Dictionary() {
         words = new Vector<Word>();
@@ -22,10 +23,7 @@ public class Dictionary {
 
             int mid = (l + r) >> 1;
             Word target = words.get(mid);
-            System.out.println("mid = " + mid + "->>" + word.sameTargetWord(target));
-
             if (word.sameTargetWord(target)) return mid;
-            System.out.println("oke go");
             if (word.isGreaterThan(target)) {
                 l = mid + 1;
             } else {
