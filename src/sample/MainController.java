@@ -8,7 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -38,6 +38,7 @@ public class MainController implements Initializable {
     public TextArea meaningTextArea;
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
+    Map<String, String> history = new HashMap<String, String>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -75,6 +76,8 @@ public class MainController implements Initializable {
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
+                //add word to history.txt
+             WriteToFile(firstSearchedWord.getWord_target() +"\t"+firstSearchedWord.getWord_explain());
 
             } else {
                 meaningTextArea.clear();
@@ -116,6 +119,8 @@ public class MainController implements Initializable {
 
             meaningTextArea.setText(wordMeaning);
             targetLabel.setText(searchStr);
+            // add word to history.txt
+            WriteToFile(searchStr+ "\t" +wordMeaning);
 
         });
 
@@ -209,11 +214,21 @@ public class MainController implements Initializable {
         });
 
         historyButton.setOnAction(actionEvent -> {
-            //TODO: -Add some function here
+            //dictionaryManager.loadFromHistory();
+            readFile();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("history");
+            alert.setHeaderText("your history");
+            ListView<Object> listView = new ListView<>();
+
+            listView.getItems().addAll(history.keySet());
+            alert.getDialogPane().setContent(listView);
+            alert.showAndWait();
+
         });
 
         spellButton.setOnMouseClicked(event -> {
-            String searchedWord = searchTextField.getText();
+            String searchedWord = targetLabel.getText();
             speech(searchedWord);
         });
     }
@@ -232,6 +247,40 @@ public class MainController implements Initializable {
         syntheticVoice.speak(searchedWord);
         syntheticVoice.deallocate();
 
+
+    }
+
+    private void WriteToFile(String word) {
+        try {
+            File file = new File("history.txt");
+            FileWriter writer = new FileWriter(file);
+            writer.write(word);
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void readFile() {
+        try {
+            File file = new File("history.txt");
+            FileReader fileReader = new FileReader(file);
+            BufferedReader reader = new BufferedReader(fileReader);
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String meaning = "";
+                String word = "";
+                String[] result = line.split("\t");
+                word += result[0];
+                meaning += result[1];
+                history.put(word, meaning);
+            }
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 }

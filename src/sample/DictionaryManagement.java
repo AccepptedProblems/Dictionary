@@ -9,10 +9,6 @@ import java.io.*;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
 
 public class DictionaryManagement extends Dictionary {
 
@@ -42,7 +38,9 @@ public class DictionaryManagement extends Dictionary {
 
     }
 
-    public void loadFromHistory() throws IOException {
+    public void loadFromHistory()  {
+
+
 
     }
 
@@ -102,5 +100,13 @@ public class DictionaryManagement extends Dictionary {
 
         outputStreamWriter.flush();
     }
+
+
+
+
+
+
+
+
 
 }
