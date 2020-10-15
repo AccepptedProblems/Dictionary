@@ -39,9 +39,37 @@ public class DictionaryManagement extends Dictionary {
     }
 
     public void loadFromHistory()  {
+        try {
+            File file = new File("history.txt");
+            FileReader fileReader = new FileReader(file);
+            BufferedReader reader = new BufferedReader(fileReader);
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                String meaning = "";
+                String info = "";
+                String[] result = line.split("\t");
+                info+= result[0];
+                meaning += result[1];
+                Word temp = new Word(info, meaning);
+                histories.add(temp);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+    }
 
+    public void WriteToFile(String word)  {
+        try {
+            File file = new File("history.txt");
+            FileWriter writer = new FileWriter(file);
+            writer.write(word);
+            writer.close();
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Vector <String> wordStartWith(String word) {
@@ -85,9 +113,7 @@ public class DictionaryManagement extends Dictionary {
 
     public void deleteWordFromDictionary(Word word) {
         int wordIndex = indexOfWord(word);
-        Word deleteWord = words.get(wordIndex);
-
-        words.remove(word);
+        words.removeElementAt(wordIndex);
     }
 
     public void addToDictionaryFile(Word word) throws IOException {

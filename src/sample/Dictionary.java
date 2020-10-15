@@ -1,12 +1,10 @@
 package sample;
 
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.Vector;
 
 public class Dictionary {
     public Vector<Word> words;
-    public Vector<Word> histories;
+    public Vector<Word> histories = new Vector<Word>();
 
     public Dictionary() {
         words = new Vector<Word>();

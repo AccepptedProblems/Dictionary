@@ -33,6 +33,7 @@
                   <TextArea fx:id="meaningTextArea" layoutX="18.0" layoutY="55.0" prefHeight="414.0" prefWidth="326.0" style="-fx-background-color: #FFFF33;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="55.0" />
                   <ToolBar layoutX="10.0" layoutY="7.0" prefHeight="45.0" prefWidth="177.0" style="-fx-background-color: #FFFF33;" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="5.0">
                     <items>
+                        <Button fx:id="spellButton" mnemonicParsing="false" style="-fx-background-color: #000000;" text="spell" />
                         <Button fx:id="changeButton" mnemonicParsing="false" style="-fx-background-color: #000000;" text="Change" textFill="#ffff33" />
                         <Button fx:id="deleteButton" mnemonicParsing="false" style="-fx-background-color: #000000;" text="Delete" textFill="#ffff33" />
                     </items>
@@ -42,7 +43,6 @@
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Button fx:id="spellButton" layoutX="138.0" layoutY="55.0" mnemonicParsing="false" text="spell" />
                </children>
             </AnchorPane>
         </items>

@@ -77,7 +77,7 @@ public class MainController implements Initializable {
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
                 //add word to history.txt
-             WriteToFile(firstSearchedWord.getWord_target() +"\t"+firstSearchedWord.getWord_explain());
+             dictionaryManager.WriteToFile(firstSearchedWord.getWord_target() +"\t"+firstSearchedWord.getWord_explain());
 
             } else {
                 meaningTextArea.clear();
@@ -96,8 +96,6 @@ public class MainController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Alert");
                 alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
-                alert.show();
-
                 Optional<ButtonType> option = alert.showAndWait();
                 if (option.get() == ButtonType.OK) {
                     Word deleteWord = new Word(deleteTargetWord, "");
@@ -120,7 +118,7 @@ public class MainController implements Initializable {
             meaningTextArea.setText(wordMeaning);
             targetLabel.setText(searchStr);
             // add word to history.txt
-            WriteToFile(searchStr+ "\t" +wordMeaning);
+            dictionaryManager.WriteToFile(searchStr+ "\t" +wordMeaning);
 
         });
 
@@ -213,15 +211,15 @@ public class MainController implements Initializable {
 
         });
 
-        historyButton.setOnAction(actionEvent -> {
-            //dictionaryManager.loadFromHistory();
-            readFile();
+        historyButton.setOnMouseClicked(event -> {
+            dictionaryManager.loadFromHistory();
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("history");
             alert.setHeaderText("your history");
             ListView<Object> listView = new ListView<>();
-
-            listView.getItems().addAll(history.keySet());
+            for (int i = 0; i < dictionaryManager.histories.size(); i++) {
+                listView.getItems().add(dictionaryManager.histories.get(i).getWord_target());
+            }
             alert.getDialogPane().setContent(listView);
             alert.showAndWait();
 
@@ -250,37 +248,5 @@ public class MainController implements Initializable {
 
     }
 
-    private void WriteToFile(String word) {
-        try {
-            File file = new File("history.txt");
-            FileWriter writer = new FileWriter(file);
-            writer.write(word);
-            writer.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private void readFile() {
-        try {
-            File file = new File("history.txt");
-            FileReader fileReader = new FileReader(file);
-            BufferedReader reader = new BufferedReader(fileReader);
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                String meaning = "";
-                String word = "";
-                String[] result = line.split("\t");
-                word += result[0];
-                meaning += result[1];
-                history.put(word, meaning);
-            }
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 }
