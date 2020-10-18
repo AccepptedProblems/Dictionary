@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.Scanner;
 import java.util.Vector;
 
+
 public class DictionaryManagement extends Dictionary {
 
     //////////// Read and get data method
@@ -60,7 +61,7 @@ public class DictionaryManagement extends Dictionary {
 
     public void loadDictionaries () {
         loadDataFromSQL("dictionary");
-    }
+
 
     public void loadHistory () {
         loadDataFromSQL("history");
@@ -151,6 +152,14 @@ public class DictionaryManagement extends Dictionary {
             histories.removeElementAt(wordIndex);
         }
     }
+
+
+
+
+
+
+
+
 
 
 

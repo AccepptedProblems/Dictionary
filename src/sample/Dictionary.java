@@ -1,7 +1,5 @@
 package sample;
 
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.Vector;
 
 public class Dictionary {

@@ -8,7 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -79,8 +79,8 @@ public class MainController implements Initializable {
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
-                FLabel.setVisible(firstSearchedWord.getFavourite());
 
+                FLabel.setVisible(firstSearchedWord.getFavourite());
                 searchListView.getSelectionModel().select(0);
             } else {
                 meaningTextArea.clear();
@@ -229,7 +229,7 @@ public class MainController implements Initializable {
         });
 
         spellButton.setOnMouseClicked(event -> {
-            String searchedWord = searchTextField.getText();
+            String searchedWord = targetLabel.getText();
             speech(searchedWord);
         });
     }
@@ -249,4 +249,6 @@ public class MainController implements Initializable {
         syntheticVoice.deallocate();
 
     }
+
+
 }
