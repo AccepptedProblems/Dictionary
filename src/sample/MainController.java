@@ -8,7 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -38,7 +38,7 @@ public class MainController implements Initializable {
     public TextArea meaningTextArea;
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
-    Map<String, String> history = new HashMap<String, String>();
+    Map<String, String> favorite = new HashMap<String, String>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -213,17 +213,30 @@ public class MainController implements Initializable {
 
         historyButton.setOnMouseClicked(event -> {
             dictionaryManager.loadFromHistory();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("history");
-            alert.setHeaderText("your history");
-            ListView<Object> listView = new ListView<>();
+            searchListView.getItems().clear();
             for (int i = 0; i < dictionaryManager.histories.size(); i++) {
-                listView.getItems().add(dictionaryManager.histories.get(i).getWord_target());
+                searchListView.getItems().add(dictionaryManager.histories.get(i).getWord_target());
             }
-            alert.getDialogPane().setContent(listView);
-            alert.showAndWait();
+        });
+
+        favouriteButton.setOnMouseClicked(mouseEvent -> {
+            String word = targetLabel.getText();
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("favorite");
+            alert.setContentText("Do you want to save this word to your favorite list ? ");
+            favorite.put(word,"");
+            ButtonType mean = new ButtonType("show list");
+            // alert.getButtonTypes().clear();
+            alert.getButtonTypes().add(mean);
+            Optional<ButtonType> option = alert.showAndWait();
+            if(option.get() == mean){
+                searchListView.getItems().clear();
+                searchListView.getItems().addAll(favorite.keySet());
+            }
 
         });
+
+
 
         spellButton.setOnMouseClicked(event -> {
             String searchedWord = targetLabel.getText();
