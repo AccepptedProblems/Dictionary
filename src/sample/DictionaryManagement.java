@@ -43,12 +43,19 @@ public class DictionaryManagement extends Dictionary {
     }
 
     public void updateFavourite() {
-        favourite.clear();
+        if(favourite.size() != 0) favourite.clear();
         for (Word word: words) {
             if (word.getFavourite()) {
-                favourite.add(word);
+                favourite.add(word.getWord_target());
             }
         }
+    }
+
+    public void updateFavourite(String word) {
+        Word currentWord = new Word(word, "");
+        int wordIndex = indexOfWord(currentWord);
+
+        words.get(wordIndex).setFavourite(!words.get(wordIndex).getFavourite());
     }
 
     public void loadDictionaries () {

@@ -6,9 +6,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.sql.*;
-
-
 public class Main extends Application {
 
     @Override
@@ -17,6 +14,7 @@ public class Main extends Application {
         primaryStage.setTitle("Dictionary");
         primaryStage.setScene(new Scene(root, 600, 560));
         primaryStage.show();
+
     }
 
     public static void main(String[] args) {

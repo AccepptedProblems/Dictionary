@@ -7,10 +7,12 @@ import java.util.Vector;
 public class Dictionary {
     public Vector<Word> words;
     public Vector<String> histories;
-    public Vector<Word> favourite;
+    public Vector<String> favourite;
 
     public Dictionary() {
         words = new Vector<>();
+        histories = new Vector<>();
+        favourite = new Vector<>();
     }
 
     // Trả về vị trí của từ có target là word

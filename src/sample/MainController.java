@@ -29,6 +29,8 @@ public class MainController implements Initializable {
     @FXML
     public Button searchButton;
     @FXML
+    public  Button setFavouriteButton;
+    @FXML
     public Label targetLabel;
     @FXML
     public TextField searchTextField;
@@ -36,6 +38,8 @@ public class MainController implements Initializable {
     public ListView searchListView;
     @FXML
     public TextArea meaningTextArea;
+    @FXML
+    public Label FLabel;
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
 
@@ -43,6 +47,7 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         meaningTextArea.setEditable(false);
         targetLabel.setText("");
+        FLabel.setVisible(false);
 
         try {
             this.initializeWordList();
@@ -53,6 +58,7 @@ public class MainController implements Initializable {
         searchTextField.setOnAction(event -> {
             if (searchTextField.getText().equals("")) {
                 targetLabel.setText("");
+                FLabel.setVisible(false);
                 meaningTextArea.clear();
                 searchListView.getItems().clear();
                 searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
@@ -73,6 +79,7 @@ public class MainController implements Initializable {
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
+                FLabel.setVisible(firstSearchedWord.getFavourite());
 
                 searchListView.getSelectionModel().select(0);
             } else {
@@ -87,7 +94,7 @@ public class MainController implements Initializable {
 
             meaningTextArea.setText(searchedWord.getWord_explain());
             targetLabel.setText(searchStr);
-
+            FLabel.setVisible(searchedWord.getFavourite());
         });
 
         deleteButton.setOnAction(event -> {
@@ -103,6 +110,8 @@ public class MainController implements Initializable {
                     Word deleteWord = new Word(deleteTargetWord, "");
                     dictionaryManager.deleteWordFromDictionary(deleteWord);
 
+                    FLabel.setVisible(false);
+                    targetLabel.setText("");
                     meaningTextArea.clear();
                     searchListView.getItems().clear();
                     searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
@@ -184,7 +193,7 @@ public class MainController implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == changeButtonType) {
-                    return new Pair<String, String> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<> (targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
@@ -199,11 +208,24 @@ public class MainController implements Initializable {
         });
 
         favouriteButton.setOnAction(actionEvent -> {
-            
+            dictionaryManager.updateFavourite();
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(dictionaryManager.favourite);
+        });
+
+        setFavouriteButton.setOnAction(actionEvent -> {
+            if (targetLabel.getText().equals("")) return;
+
+            dictionaryManager.updateFavourite(targetLabel.getText());
+            Word currentWord = dictionaryManager.findWord(targetLabel.getText());
+            FLabel.setVisible(currentWord.getFavourite());
+
         });
 
         historyButton.setOnAction(actionEvent -> {
             //TODO: -Add some function here
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(dictionaryManager.histories);
         });
 
         spellButton.setOnMouseClicked(event -> {
