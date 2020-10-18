@@ -55,35 +55,39 @@ public class MainController implements Initializable {
                 targetLabel.setText("");
                 meaningTextArea.clear();
                 searchListView.getItems().clear();
-                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             }
         });
 
         searchButton.setOnMouseClicked(event -> {
             String searchedWord = searchTextField.getText();
-            Vector<String> result = dictionaryManager.wordStartWith(searchedWord);
-            System.out.println(result.stream().count());
-            if (!searchedWord.equals("") && result.size() > 0) {
+            Vector<String> result = dictionaryManager.wordsStartWith(searchedWord);
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(result);
 
+            if (!searchedWord.equals("") && result.size() > 0) {
                 //First word in result
                 searchedWord = result.firstElement();
-                Word firstSearchedWord = new Word(searchedWord, "");
-                int wordIndex = dictionaryManager.indexOfWord(firstSearchedWord);
 
-                //get meaning
-                firstSearchedWord = dictionaryManager.words.get(wordIndex);
+                Word firstSearchedWord = dictionaryManager.findWord(searchedWord);
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
 
+                searchListView.getSelectionModel().select(0);
             } else {
                 meaningTextArea.clear();
+                //TODO: Get a API call to google translate
             }
-            searchListView.getItems().clear();
-            searchListView.getItems().addAll(result);
-            if (!searchListView.getItems().isEmpty()) {
-                searchListView.getSelectionModel().select(0);
-            }
+        });
+
+        searchListView.setOnMouseClicked(event -> {
+            String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
+            Word searchedWord = dictionaryManager.findWord(searchStr);
+
+            meaningTextArea.setText(searchedWord.getWord_explain());
+            targetLabel.setText(searchStr);
+
         });
 
         deleteButton.setOnAction(event -> {
@@ -93,7 +97,6 @@ public class MainController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Alert");
                 alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
-                alert.show();
 
                 Optional<ButtonType> option = alert.showAndWait();
                 if (option.get() == ButtonType.OK) {
@@ -102,21 +105,8 @@ public class MainController implements Initializable {
 
                     meaningTextArea.clear();
                     searchListView.getItems().clear();
-                    searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                    searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
                 }
-        });
-
-        searchListView.setOnMouseClicked(event -> {
-            String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
-            Word searchedWord = new Word(searchStr, "");
-
-            int wordIndex = dictionaryManager.indexOfWord(searchedWord);
-
-            String wordMeaning = dictionaryManager.words.get(wordIndex).getWord_explain();
-
-            meaningTextArea.setText(wordMeaning);
-            targetLabel.setText(searchStr);
-
         });
 
         addButton.setOnAction(event -> {
@@ -157,7 +147,7 @@ public class MainController implements Initializable {
             result.ifPresent( word -> {
                 dictionaryManager.addWordToDictionary(word.getKey(), word.getValue());
                 searchListView.getItems().clear();
-                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             });
 
         });
@@ -208,6 +198,10 @@ public class MainController implements Initializable {
 
         });
 
+        favouriteButton.setOnAction(actionEvent -> {
+            
+        });
+
         historyButton.setOnAction(actionEvent -> {
             //TODO: -Add some function here
         });
@@ -219,8 +213,8 @@ public class MainController implements Initializable {
     }
 
     public void initializeWordList() throws IOException {
-        dictionaryManager.insertFromFile();
-        searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+        dictionaryManager.loadDataFromSQL("dictionary");
+        searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
     }
 
 
@@ -231,7 +225,6 @@ public class MainController implements Initializable {
         syntheticVoice.allocate();
         syntheticVoice.speak(searchedWord);
         syntheticVoice.deallocate();
-
 
     }
 }
