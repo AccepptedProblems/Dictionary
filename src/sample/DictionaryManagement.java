@@ -61,9 +61,9 @@ public class DictionaryManagement extends Dictionary {
 
     public void loadDictionaries () {
         loadDataFromSQL("dictionary");
+    }
 
-
-    public void loadHistory () {
+    public void loadHistory() {
         loadDataFromSQL("history");
     }
 
