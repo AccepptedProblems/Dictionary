@@ -8,7 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -207,6 +207,34 @@ public class MainController implements Initializable {
 
         });
 
+<<<<<<< HEAD
+        historyButton.setOnMouseClicked(event -> {
+            dictionaryManager.loadFromHistory();
+            searchListView.getItems().clear();
+            for (int i = 0; i < dictionaryManager.histories.size(); i++) {
+                searchListView.getItems().add(dictionaryManager.histories.get(i).getWord_target());
+            }
+        });
+
+        favouriteButton.setOnMouseClicked(mouseEvent -> {
+            String word = targetLabel.getText();
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("favorite");
+            alert.setContentText("Do you want to save this word to your favorite list ? ");
+            favorite.put(word,"");
+            ButtonType mean = new ButtonType("show list");
+            // alert.getButtonTypes().clear();
+            alert.getButtonTypes().add(mean);
+            Optional<ButtonType> option = alert.showAndWait();
+            if(option.get() == mean){
+                searchListView.getItems().clear();
+                searchListView.getItems().addAll(favorite.keySet());
+            }
+
+        });
+
+
+=======
         favouriteButton.setOnAction(actionEvent -> {
             dictionaryManager.updateFavourite();
             searchListView.getItems().clear();
@@ -227,6 +255,7 @@ public class MainController implements Initializable {
             searchListView.getItems().clear();
             searchListView.getItems().addAll(dictionaryManager.histories);
         });
+>>>>>>> 4e86800f1c294d59df46b1d9f9174f6855f8b00b
 
         spellButton.setOnMouseClicked(event -> {
             String searchedWord = targetLabel.getText();
