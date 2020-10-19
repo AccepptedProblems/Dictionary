@@ -14,6 +14,7 @@ public class Main extends Application {
         primaryStage.setTitle("Dictionary");
         primaryStage.setScene(new Scene(root, 600, 560));
         primaryStage.show();
+
     }
 
     public static void main(String[] args) {

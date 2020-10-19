@@ -29,6 +29,8 @@ public class MainController implements Initializable {
     @FXML
     public Button searchButton;
     @FXML
+    public  Button setFavouriteButton;
+    @FXML
     public Label targetLabel;
     @FXML
     public TextField searchTextField;
@@ -36,14 +38,16 @@ public class MainController implements Initializable {
     public ListView searchListView;
     @FXML
     public TextArea meaningTextArea;
+    @FXML
+    public Label FLabel;
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
-    Map<String, String> favorite = new HashMap<String, String>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         meaningTextArea.setEditable(false);
         targetLabel.setText("");
+        FLabel.setVisible(false);
 
         try {
             this.initializeWordList();
@@ -54,39 +58,43 @@ public class MainController implements Initializable {
         searchTextField.setOnAction(event -> {
             if (searchTextField.getText().equals("")) {
                 targetLabel.setText("");
+                FLabel.setVisible(false);
                 meaningTextArea.clear();
                 searchListView.getItems().clear();
-                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             }
         });
 
         searchButton.setOnMouseClicked(event -> {
             String searchedWord = searchTextField.getText();
-            Vector<String> result = dictionaryManager.wordStartWith(searchedWord);
-            System.out.println(result.stream().count());
-            if (!searchedWord.equals("") && result.size() > 0) {
+            Vector<String> result = dictionaryManager.wordsStartWith(searchedWord);
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(result);
 
+            if (!searchedWord.equals("") && result.size() > 0) {
                 //First word in result
                 searchedWord = result.firstElement();
-                Word firstSearchedWord = new Word(searchedWord, "");
-                int wordIndex = dictionaryManager.indexOfWord(firstSearchedWord);
 
-                //get meaning
-                firstSearchedWord = dictionaryManager.words.get(wordIndex);
+                Word firstSearchedWord = dictionaryManager.findWord(searchedWord);
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
                 meaningTextArea.setText(firstSearchedWord.getWord_explain());
-                //add word to history.txt
-             dictionaryManager.WriteToFile(firstSearchedWord.getWord_target() +"\t"+firstSearchedWord.getWord_explain());
 
+                FLabel.setVisible(firstSearchedWord.getFavourite());
+                searchListView.getSelectionModel().select(0);
             } else {
                 meaningTextArea.clear();
+                //TODO: Get a API call to google translate
             }
-            searchListView.getItems().clear();
-            searchListView.getItems().addAll(result);
-            if (!searchListView.getItems().isEmpty()) {
-                searchListView.getSelectionModel().select(0);
-            }
+        });
+
+        searchListView.setOnMouseClicked(event -> {
+            String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
+            Word searchedWord = dictionaryManager.findWord(searchStr);
+
+            meaningTextArea.setText(searchedWord.getWord_explain());
+            targetLabel.setText(searchStr);
+            FLabel.setVisible(searchedWord.getFavourite());
         });
 
         deleteButton.setOnAction(event -> {
@@ -96,30 +104,18 @@ public class MainController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Alert");
                 alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
+
                 Optional<ButtonType> option = alert.showAndWait();
                 if (option.get() == ButtonType.OK) {
                     Word deleteWord = new Word(deleteTargetWord, "");
                     dictionaryManager.deleteWordFromDictionary(deleteWord);
 
+                    FLabel.setVisible(false);
+                    targetLabel.setText("");
                     meaningTextArea.clear();
                     searchListView.getItems().clear();
-                    searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                    searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
                 }
-        });
-
-        searchListView.setOnMouseClicked(event -> {
-            String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
-            Word searchedWord = new Word(searchStr, "");
-
-            int wordIndex = dictionaryManager.indexOfWord(searchedWord);
-
-            String wordMeaning = dictionaryManager.words.get(wordIndex).getWord_explain();
-
-            meaningTextArea.setText(wordMeaning);
-            targetLabel.setText(searchStr);
-            // add word to history.txt
-            dictionaryManager.WriteToFile(searchStr+ "\t" +wordMeaning);
-
         });
 
         addButton.setOnAction(event -> {
@@ -160,7 +156,7 @@ public class MainController implements Initializable {
             result.ifPresent( word -> {
                 dictionaryManager.addWordToDictionary(word.getKey(), word.getValue());
                 searchListView.getItems().clear();
-                searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+                searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             });
 
         });
@@ -197,7 +193,7 @@ public class MainController implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == changeButtonType) {
-                    return new Pair<String, String> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<> (targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
@@ -211,6 +207,7 @@ public class MainController implements Initializable {
 
         });
 
+<<<<<<< HEAD
         historyButton.setOnMouseClicked(event -> {
             dictionaryManager.loadFromHistory();
             searchListView.getItems().clear();
@@ -237,6 +234,28 @@ public class MainController implements Initializable {
         });
 
 
+=======
+        favouriteButton.setOnAction(actionEvent -> {
+            dictionaryManager.updateFavourite();
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(dictionaryManager.favourite);
+        });
+
+        setFavouriteButton.setOnAction(actionEvent -> {
+            if (targetLabel.getText().equals("")) return;
+
+            dictionaryManager.updateFavourite(targetLabel.getText());
+            Word currentWord = dictionaryManager.findWord(targetLabel.getText());
+            FLabel.setVisible(currentWord.getFavourite());
+
+        });
+
+        historyButton.setOnAction(actionEvent -> {
+            //TODO: -Add some function here
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(dictionaryManager.histories);
+        });
+>>>>>>> 4e86800f1c294d59df46b1d9f9174f6855f8b00b
 
         spellButton.setOnMouseClicked(event -> {
             String searchedWord = targetLabel.getText();
@@ -245,8 +264,8 @@ public class MainController implements Initializable {
     }
 
     public void initializeWordList() throws IOException {
-        dictionaryManager.insertFromFile();
-        searchListView.getItems().addAll(dictionaryManager.wordStartWith(""));
+        dictionaryManager.loadDataFromSQL("dictionary");
+        searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
     }
 
 
@@ -257,7 +276,6 @@ public class MainController implements Initializable {
         syntheticVoice.allocate();
         syntheticVoice.speak(searchedWord);
         syntheticVoice.deallocate();
-
 
     }
 

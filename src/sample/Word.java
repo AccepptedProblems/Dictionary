@@ -3,15 +3,18 @@ package sample;
 public class Word {
     private String word_target;
     private String word_explain;
+    private boolean isFavourite;
 
     public Word() {
         word_target = null;
         word_explain = null;
+        isFavourite = false;
     }
 
     public Word(String word_target, String word_explain) {
         this.word_target = word_target;
         this.word_explain = word_explain;
+        this.isFavourite = false;
     }
 
     public String getWord_explain() {
@@ -22,12 +25,20 @@ public class Word {
         return word_target;
     }
 
+    public boolean getFavourite() {
+        return isFavourite;
+    }
+
     public void setWord_explain(String word_explain) {
         this.word_explain = word_explain;
     }
 
     public void setWord_target(String word_target) {
         this.word_target = word_target;
+    }
+
+    public void setFavourite(boolean favourite) {
+        isFavourite = favourite;
     }
 
     // Compare if word's dictionary order is greater than an other word

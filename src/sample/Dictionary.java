@@ -4,15 +4,17 @@ import java.util.Vector;
 
 public class Dictionary {
     public Vector<Word> words;
-    public Vector<Word> histories = new Vector<Word>();
+    public Vector<String> histories;
+    public Vector<String> favourite;
 
     public Dictionary() {
-        words = new Vector<Word>();
+        words = new Vector<>();
+        histories = new Vector<>();
+        favourite = new Vector<>();
     }
 
     // Trả về vị trí của từ có target là word
     public int indexOfWord (Word word) {
-        System.out.println(words.size());
         int dictionaryLen = words.size();
         if (dictionaryLen == 0) return -1;
         int l = 0, r = dictionaryLen;

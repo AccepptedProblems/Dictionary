@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 -ment	hậu tố tạo danh từ có nghĩa:sự, quá trìnhthái độ, tình trạngsản phẩm, kết quả, nơi
+=======
+-mer	hậu tố tạo danh từ có nghĩa là polyme (trùng phân) hoặc isome (đồng phân)
+>>>>>>> 4e86800f1c294d59df46b1d9f9174f6855f8b00b
