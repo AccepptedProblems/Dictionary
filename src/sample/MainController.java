@@ -1,16 +1,24 @@
 package sample;
 
 import com.sun.speech.freetts.VoiceManager;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Vector;
+
 
 public class MainController implements Initializable {
 
@@ -29,7 +37,7 @@ public class MainController implements Initializable {
     @FXML
     public Button searchButton;
     @FXML
-    public  Button setFavouriteButton;
+    public Button setFavouriteButton;
     @FXML
     public Label targetLabel;
     @FXML
@@ -40,6 +48,22 @@ public class MainController implements Initializable {
     public TextArea meaningTextArea;
     @FXML
     public Label FLabel;
+
+    @FXML
+    public void ChangeScene(ActionEvent event) throws IOException {
+        Parent tableViewParent = FXMLLoader.load(getClass().getResource("sample2.fxml"));
+        Scene tableViewScene = new Scene(tableViewParent);
+
+        //This line gets the Stage information
+        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+        window.setScene(tableViewScene);
+        window.show();
+    }
+
+    @FXML
+    public Button changeSceneButton1;
+
 
     DictionaryManagement dictionaryManager = new DictionaryManagement();
 
@@ -82,6 +106,7 @@ public class MainController implements Initializable {
 
                 FLabel.setVisible(firstSearchedWord.getFavourite());
                 searchListView.getSelectionModel().select(0);
+                dictionaryManager.addWordToHistory(firstSearchedWord.getWord_target());
             } else {
                 meaningTextArea.clear();
                 //TODO: Get a API call to google translate
@@ -95,27 +120,29 @@ public class MainController implements Initializable {
             meaningTextArea.setText(searchedWord.getWord_explain());
             targetLabel.setText(searchStr);
             FLabel.setVisible(searchedWord.getFavourite());
+            dictionaryManager.addWordToHistory(searchStr);
         });
+
 
         deleteButton.setOnAction(event -> {
             String deleteTargetWord = targetLabel.getText();
             if (deleteTargetWord.equals("")) return;
 
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Alert");
-                alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
+            alert.setTitle("Alert");
+            alert.setContentText("Do you want to delete word \"" + deleteTargetWord + "\" ?");
 
-                Optional<ButtonType> option = alert.showAndWait();
-                if (option.get() == ButtonType.OK) {
-                    Word deleteWord = new Word(deleteTargetWord, "");
-                    dictionaryManager.deleteWordFromDictionary(deleteWord);
+            Optional<ButtonType> option = alert.showAndWait();
+            if (option.get() == ButtonType.OK) {
+                Word deleteWord = new Word(deleteTargetWord, "");
+                dictionaryManager.deleteWordFromDictionary(deleteWord);
 
-                    FLabel.setVisible(false);
-                    targetLabel.setText("");
-                    meaningTextArea.clear();
-                    searchListView.getItems().clear();
-                    searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
-                }
+                FLabel.setVisible(false);
+                targetLabel.setText("");
+                meaningTextArea.clear();
+                searchListView.getItems().clear();
+                searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
+            }
         });
 
         addButton.setOnAction(event -> {
@@ -148,12 +175,12 @@ public class MainController implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-                    return new Pair<> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<>(targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
             Optional<Pair<String, String>> result = dialog.showAndWait();
-            result.ifPresent( word -> {
+            result.ifPresent(word -> {
                 dictionaryManager.addWordToDictionary(word.getKey(), word.getValue());
                 searchListView.getItems().clear();
                 searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
@@ -193,13 +220,13 @@ public class MainController implements Initializable {
             dialog.getDialogPane().setContent(gridPane);
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == changeButtonType) {
-                    return new Pair<> (targetTextField.getText(), explainTextField.getText());
+                    return new Pair<>(targetTextField.getText(), explainTextField.getText());
                 }
                 return null;
             });
 
             Optional<Pair<String, String>> result = dialog.showAndWait();
-            result.ifPresent( word -> {
+            result.ifPresent(word -> {
                 Word newWord = new Word(word.getKey(), word.getValue());
                 dictionaryManager.changeExplain(newWord);
                 meaningTextArea.setText(word.getValue());
@@ -232,10 +259,13 @@ public class MainController implements Initializable {
             String searchedWord = targetLabel.getText();
             speech(searchedWord);
         });
+
+
     }
 
+    
     public void initializeWordList() throws IOException {
-        dictionaryManager.loadDataFromSQL("dictionary");
+        dictionaryManager.insertFromFile();
         searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
     }
 
