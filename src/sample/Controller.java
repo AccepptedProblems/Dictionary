@@ -20,11 +20,12 @@ import java.net.URLEncoder;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
+    @FXML public Button changeControllerButton;
 
     @FXML
     public void ChangeScene2(ActionEvent event) throws IOException {
         Parent tableViewParent = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        Scene tableViewScene = new Scene(tableViewParent);
+        Scene tableViewScene = new Scene(tableViewParent, 900, 600);
 
         //This line gets the Stage information
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();

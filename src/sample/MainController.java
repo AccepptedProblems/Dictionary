@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.application.Platform;
 import com.sun.speech.freetts.VoiceManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,6 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
@@ -45,33 +47,44 @@ public class MainController implements Initializable {
     @FXML
     public ListView searchListView;
     @FXML
-    public TextArea meaningTextArea;
+    public WebView meaningWebView;
     @FXML
-    public Label FLabel;
+    public Label FavouriteLabel;
+    @FXML
+    public Button dictionaryListButton;
+    @FXML
+    public Button changeControllerButton;
+
+    DictionaryManagement dictionaryManager = new DictionaryManagement();
 
     @FXML
     public void ChangeScene(ActionEvent event) throws IOException {
+        dictionaryManager.saveTOSQL("dictionary");
+        dictionaryManager.saveTOSQL("history");
+
         Parent tableViewParent = FXMLLoader.load(getClass().getResource("sample2.fxml"));
-        Scene tableViewScene = new Scene(tableViewParent);
-
-        //This line gets the Stage information
+        Scene tableViewScene = new Scene(tableViewParent, 900, 600);
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
         window.setScene(tableViewScene);
         window.show();
     }
 
-    @FXML
-    public Button changeSceneButton1;
+    public void exitApplication() {
+        dictionaryManager.saveTOSQL("dictionary");
+        dictionaryManager.saveTOSQL("history");
+        Platform.exit();
+    }
 
-
-    DictionaryManagement dictionaryManager = new DictionaryManagement();
+    public void showHTML(String content) {
+        meaningWebView.getEngine().loadContent(content);
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        meaningTextArea.setEditable(false);
+
         targetLabel.setText("");
-        FLabel.setVisible(false);
+
+        FavouriteLabel.setVisible(false);
 
         try {
             this.initializeWordList();
@@ -79,14 +92,26 @@ public class MainController implements Initializable {
             e.printStackTrace();
         }
 
+        dictionaryListButton.setOnAction(actionEvent -> {
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
+        });
+
         searchTextField.setOnAction(event -> {
             if (searchTextField.getText().equals("")) {
                 targetLabel.setText("");
-                FLabel.setVisible(false);
-                meaningTextArea.clear();
+                FavouriteLabel.setVisible(false);
+                showHTML("");
                 searchListView.getItems().clear();
                 searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             }
+            String searchedWord = searchTextField.getText();
+            Vector<String> result = dictionaryManager.wordsStartWith(searchedWord);
+
+            if (result.size() > 0) dictionaryManager.addWordToHistory(result.get(0));
+
+            searchListView.getItems().clear();
+            searchListView.getItems().addAll(result);
         });
 
         searchButton.setOnMouseClicked(event -> {
@@ -102,13 +127,13 @@ public class MainController implements Initializable {
                 Word firstSearchedWord = dictionaryManager.findWord(searchedWord);
 
                 targetLabel.setText(firstSearchedWord.getWord_target());
-                meaningTextArea.setText(firstSearchedWord.getWord_explain());
+                showHTML(firstSearchedWord.getWord_explain());
 
-                FLabel.setVisible(firstSearchedWord.getFavourite());
+                FavouriteLabel.setVisible(firstSearchedWord.getFavourite());
                 searchListView.getSelectionModel().select(0);
                 dictionaryManager.addWordToHistory(firstSearchedWord.getWord_target());
             } else {
-                meaningTextArea.clear();
+                showHTML("");
                 //TODO: Get a API call to google translate
             }
         });
@@ -117,9 +142,9 @@ public class MainController implements Initializable {
             String searchStr = (String) searchListView.getSelectionModel().getSelectedItem();
             Word searchedWord = dictionaryManager.findWord(searchStr);
 
-            meaningTextArea.setText(searchedWord.getWord_explain());
+            showHTML(searchedWord.getWord_explain());
             targetLabel.setText(searchStr);
-            FLabel.setVisible(searchedWord.getFavourite());
+            FavouriteLabel.setVisible(searchedWord.getFavourite());
             dictionaryManager.addWordToHistory(searchStr);
         });
 
@@ -137,9 +162,9 @@ public class MainController implements Initializable {
                 Word deleteWord = new Word(deleteTargetWord, "");
                 dictionaryManager.deleteWordFromDictionary(deleteWord);
 
-                FLabel.setVisible(false);
+                FavouriteLabel.setVisible(false);
                 targetLabel.setText("");
-                meaningTextArea.clear();
+                showHTML("");
                 searchListView.getItems().clear();
                 searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             }
@@ -181,7 +206,7 @@ public class MainController implements Initializable {
             });
             Optional<Pair<String, String>> result = dialog.showAndWait();
             result.ifPresent(word -> {
-                dictionaryManager.addWordToDictionary(word.getKey(), word.getValue());
+                dictionaryManager.addWordToDictionary(word.getKey(), word.getValue(), false);
                 searchListView.getItems().clear();
                 searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
             });
@@ -229,7 +254,7 @@ public class MainController implements Initializable {
             result.ifPresent(word -> {
                 Word newWord = new Word(word.getKey(), word.getValue());
                 dictionaryManager.changeExplain(newWord);
-                meaningTextArea.setText(word.getValue());
+                showHTML(newWord.getWord_explain());
             });
 
         });
@@ -245,8 +270,7 @@ public class MainController implements Initializable {
 
             dictionaryManager.updateFavourite(targetLabel.getText());
             Word currentWord = dictionaryManager.findWord(targetLabel.getText());
-            FLabel.setVisible(currentWord.getFavourite());
-
+            FavouriteLabel.setVisible(currentWord.getFavourite());
         });
 
         historyButton.setOnAction(actionEvent -> {
@@ -260,15 +284,15 @@ public class MainController implements Initializable {
             speech(searchedWord);
         });
 
-
     }
 
     
     public void initializeWordList() throws IOException {
-        dictionaryManager.insertFromFile();
+    //        dictionaryManager.insertFromFile();
+        dictionaryManager.loadHistory();
+        dictionaryManager.loadDictionaries();
         searchListView.getItems().addAll(dictionaryManager.wordsStartWith(""));
     }
-
 
     private void speech(String searchedWord) {
         System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");

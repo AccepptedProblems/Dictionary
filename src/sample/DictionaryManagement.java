@@ -2,14 +2,9 @@ package sample;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -22,19 +17,15 @@ public class DictionaryManagement extends Dictionary {
         Document html = Jsoup.parse(HtmlString);
         String wordTarget = html.body().getElementsByTag("i").text();
 
-        String wordMeaning = "";
-        Elements words = html.body().getElementsByTag("ul");
-        for (Element word: words) {
-            wordMeaning += word.text() + "\n";
-        }
-        addWordToDictionary(wordTarget, wordMeaning);
+        String wordMeaning = HtmlString;
+        addWordToDictionary(wordTarget, wordMeaning, false);
     }
 
     public void insertFromFile() throws IOException {
         File readFile = new File("src\\models\\E_V.txt");
         Scanner reader = new Scanner(readFile);
         int count = 0;
-        while (reader.hasNextLine() && count < 100) {
+        while (reader.hasNextLine()) {
             String wordLine = reader.nextLine();
             parseHTML(wordLine);
             count += 1;
@@ -67,8 +58,53 @@ public class DictionaryManagement extends Dictionary {
         loadDataFromSQL("history");
     }
 
+    private void execute(String query, Connection connection) throws Exception {
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.execute();
+    }
+
+    public void saveTOSQL(String tableName){
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con= DriverManager.getConnection(
+                    "jdbc:mysql://127.0.0.1:3306/acprobs_database","root","276183");
+
+            execute("delete from " + tableName, con);
+
+            if (tableName.equals("dictionary")) {
+                for (Word word: words) {
+                    String meaning = word.getWord_explain();
+                    StringBuffer q = new StringBuffer(word.getWord_explain());
+                    int plusIndex = 0;
+
+
+                    for (int i = 0; i < meaning.length(); i++) {
+                        if (meaning.charAt(i) == '"') {
+                            q.insert(i+plusIndex, "\\");
+                            plusIndex += 1;
+                        }
+                    }
+                    String target = word.getWord_target();
+                    meaning = q.toString();
+                    int status = (word.getFavourite() == true)? 1 : 0;
+                    String query = "insert into dictionary (wordTarget, Meaning, favourite) "
+                            + "values (\"" + target + "\", \"" + meaning + "\", \"" + status + "\")";
+                    execute(query, con);
+                }
+            } else {
+                for (String his: histories) {
+                    String query = "insert into history (word) "
+                            + " values (\'" + his + "\')";
+                    execute(query, con);
+                }
+            }
+            con.close();
+        }catch(Exception e){
+            System.out.println(e);
+        }
+    }
+
     public void loadDataFromSQL(String tableName) {
-        Vector <Word> results = new Vector<>();
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection con= DriverManager.getConnection(
@@ -80,7 +116,8 @@ public class DictionaryManagement extends Dictionary {
                 String wordTarget = res.getString(1);
                 if (tableName.equals("dictionary")) {
                     String meaning = res.getString(2);
-                    addWordToDictionary(wordTarget, meaning);
+                    boolean isFavourite = (res.getInt(3) == 1);
+                    addWordToDictionary(wordTarget, meaning, isFavourite);
                 } else {
                     addWordToHistory(wordTarget);
                 }
@@ -112,9 +149,9 @@ public class DictionaryManagement extends Dictionary {
     }
 
     //Add to dictionary
-    public void addWordToDictionary(String word, String meaning) {
+    public void addWordToDictionary(String word, String meaning, boolean favourite) {
 
-        Word newWord = new Word(word, meaning);
+        Word newWord = new Word(word, meaning, favourite);
         // Get index of word in vector. If it doesn't exist, index = -1
         int wordIndex = indexOfWord(newWord);
         if (wordIndex != -1) {
@@ -152,15 +189,5 @@ public class DictionaryManagement extends Dictionary {
             histories.removeElementAt(wordIndex);
         }
     }
-
-
-
-
-
-
-
-
-
-
 
 }

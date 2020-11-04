@@ -12,7 +12,6 @@ public class Dictionary {
         histories = new Vector<>();
         favourite = new Vector<>();
     }
-
     // Trả về vị trí của từ có target là word
     public int indexOfWord (Word word) {
         int dictionaryLen = words.size();

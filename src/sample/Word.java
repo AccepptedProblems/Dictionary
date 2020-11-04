@@ -6,8 +6,8 @@ public class Word {
     private boolean isFavourite;
 
     public Word() {
-        word_target = null;
-        word_explain = null;
+        word_target = "";
+        word_explain = "";
         isFavourite = false;
     }
 
@@ -15,6 +15,12 @@ public class Word {
         this.word_target = word_target;
         this.word_explain = word_explain;
         this.isFavourite = false;
+    }
+
+    public Word(String word_target, String word_explain, boolean isFavourite) {
+        this.word_target = word_target;
+        this.word_explain = word_explain;
+        this.isFavourite = isFavourite;
     }
 
     public String getWord_explain() {
